@@ -67,7 +67,7 @@ initial_directory = '/home/alejandro/Descargas/pcb2gcode_gui'
 opti_path         = ''
 X_grid_lines      =  10
 Y_grid_lines      =   5
-units             = "mm"
+units             = "inch"
 grid_def          = "step size"
 file_in_name      = ""
   
@@ -75,44 +75,48 @@ def Unit_set():
     global units,units_G_code,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
     global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size
     global X_grid_lines,Y_grid_lines,grid_def
+    global to_inch
 
-       # INCH DEFAULTS: if units are inches, set the defaults in inches (you can change these here)
+    to_inch = 1/25.4
+
+    # MM DEFAULTS: if units are mm, set the defaults in mm (you can change these here too)
+#    if units == "mm": 
+    units_G_code      =    21
+    G_dest            =   '00'
+    X_dest            = -80.00
+    Y_dest            =  40.00
+    Z_dest            =  40.00
+    etch_definition   =  -0.50
+    etch_speed        = 120.00
+    etch_depth        =   0.10
+    etch_max          =   0.50
+    probe_speed       =  25.00
+    z_safety          =   1.00  
+    z_probe           =  -1.00
+    z_trivial         =   0.02
+    z_probe_detach    =  15.00
+    grid_clearance    =   0.01
+    step_size         =  10.00
+
+    # INCH DEFAULTS: if units are inches, adjust them
     if units == "inch": 
-        units_G_code      =    20
-        G_dest            =   '00'
-        X_dest            = -3.000
-        Y_dest            =  2.000
-        Z_dest            =  2.000
-        etch_definition   = -0.020
-        etch_speed        =  4.000
-        etch_depth        =  0.004
-        etch_max          =  0.020 
-        probe_speed       =  0.400
-        z_safety          =  0.150  
-        z_probe           = -0.150
-        z_trivial         =  0.001
-        z_probe_detach    =  2.000
-        grid_clearance    =  0.001
-        step_size         =  0.400
+        units_G_code      =                          20
+        G_dest            =                        '00'
+        X_dest            =              X_dest*to_inch
+        Y_dest            =              Y_dest*to_inch 
+        Z_dest            =              Z_dest*to_inch
+        etch_definition   =     etch_definition*to_inch
+        etch_speed        =          etch_speed*to_inch
+        etch_depth        = round(etch_depth*to_inch,4)
+        etch_max          =            etch_max*to_inch 
+        probe_speed       =         probe_speed*to_inch
+        z_safety          =            z_safety*to_inch
+        z_probe           =             z_probe*to_inch
+        z_trivial         =           z_trivial*to_inch
+        z_probe_detach    =      z_probe_detach*to_inch
+        grid_clearance    =      grid_clearance*to_inch
+        step_size         =  round(step_size*to_inch,4)
 
-        # MM DEFAULTS: if units are mm, set the defaults in mm (you can change these here too)
-    elif units == "mm": 
-        units_G_code      =    21
-        G_dest            =   '00'
-        X_dest            = -80.00
-        Y_dest            =  40.00
-        Z_dest            =  40.00
-        etch_definition   =  -0.50
-        etch_speed        = 200.00
-        etch_depth        =   0.10
-        etch_max          =   25.00
-        probe_speed       =  25.00
-        z_safety          =   1.00  
-        z_probe           =  -1.00
-        z_trivial         =   0.02
-        z_probe_detach    =  20.00
-        grid_clearance    =   0.01
-        step_size         =  10.00
 
 def Unit_sel():
     global units,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
@@ -451,6 +455,8 @@ if OK == True:
         X_max = X_max + grid_clearance
         Y_min = Y_min - grid_clearance
         Y_max = Y_max + grid_clearance
+        t_line = ';Datos de circuito X_min =  %.4f , X_max = %.4f , Y_min =  %.4f , Y_max = %.4f\n' % (X_min, X_max, Y_min, Y_max)
+        intro.append(t_line)
 
 
         # Use max and min values for the etch moves to work out the probe grid dimensions
