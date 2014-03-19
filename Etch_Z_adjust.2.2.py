@@ -450,7 +450,8 @@ if OK == True:
         X_min = X_min - grid_clearance
         X_max = X_max + grid_clearance
         Y_min = Y_min - grid_clearance
-        Y_max = Y_max + grid_clearance    
+        Y_max = Y_max + grid_clearance
+
 
         # Use max and min values for the etch moves to work out the probe grid dimensions
         X_span = X_max - X_min
@@ -626,7 +627,7 @@ O001 endwhile
 
 (MSG, OK folks - power up the mill...)
 
-M00
+;M00  (Nos saltamos la pausa porque si tenemos control de encendido)
 
 """
         intro.append(line)
