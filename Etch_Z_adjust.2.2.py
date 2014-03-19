@@ -63,8 +63,8 @@
  
 
 # UNITLESS DEFAULTS: These values are not unit sensitive (you can change these here)
-initial_directory = '/home/matt/cad/'
-opti_path         = '/home/matt/cad/tools/etchZAdjust/opti_cli'
+initial_directory = '/home/alejandro/Descargas/pcb2gcode_gui'
+opti_path         = ''
 X_grid_lines      =  10
 Y_grid_lines      =   5
 units             = "mm"
@@ -420,7 +420,8 @@ if OK == True:
             char_ptr = char_ptr + 1
             
         # if the line is an etch move, then replace the line with an etch call        
-        if ( G_dest == '01' or G_dest == '1' ) and Z_dest > etch_definition:
+#        if G_dest == '01' and Z_dest > etch_definition:
+        if Z_dest > etch_definition and Z_dest < 0:
 
             line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest)
 
