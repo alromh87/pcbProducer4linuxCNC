@@ -364,8 +364,10 @@ L_blank5.grid           (row=14, column=1)
 
 ## Tkinter defaults
 #   set the default units  
-RB_mm.select()
-# RB_inch.select()
+if units == "inch":
+    RB_inch.select()
+else:
+    RB_mm.select()
 
 Unit_sel()
 
