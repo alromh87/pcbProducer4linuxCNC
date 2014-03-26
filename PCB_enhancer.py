@@ -63,16 +63,18 @@
  
 
 # UNITLESS DEFAULTS: These values are not unit sensitive (you can change these here)
-initial_directory = '/home/alejandro/Descargas/pcb2gcode_gui'
+initial_directory = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing'
 opti_path         = ''
 X_grid_lines      =  10
 Y_grid_lines      =   5
 units             = "inch"
 grid_def          = "step size"
-file_in_name      = ""
+file_name_mill    = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/back.ngc'
+file_name_drill   = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/drill.ngc'
+
   
 def Unit_set():
-    global units,units_G_code,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
+    global units,units_G_code,G_move,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
     global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size
     global X_grid_lines,Y_grid_lines,grid_def
     global to_inch
@@ -82,6 +84,7 @@ def Unit_set():
     # MM DEFAULTS: if units are mm, set the defaults in mm (you can change these here too)
 #    if units == "mm": 
     units_G_code      =    21
+    G_move            =   '00'
     G_dest            =   '00'
     X_dest            = -80.00
     Y_dest            =  40.00
@@ -121,7 +124,7 @@ def Unit_set():
 def Unit_sel():
     global units,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
     global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size
-    global X_grid_lines,Y_grid_lines,grid_def, file_in_name
+    global X_grid_lines,Y_grid_lines,grid_def, file_name_mill, file_name_drill
     
     units = get_units.get()
     Unit_set()
@@ -153,22 +156,30 @@ def Def_sel():
         Ent_Y.delete(0, END)
         Ent_Y.insert(0, Y_grid_lines)        
 
-def Browse():
-    global file_in_name
+def BrowseMill():
+    global file_name_mill
     import tkFileDialog
-    file_in_name = tkFileDialog.askopenfilename(parent=top,initialdir=initial_directory,
+    file_name_mill = tkFileDialog.askopenfilename(parent=top,initialdir=initial_directory,
                                         filetypes= [('nc files', '*.ngc'),('nc files', '*.nc')],
-                                        title='Choose file to import:')
-    L_file_in_name.config(text = file_in_name)
+                                        title='Choose Mill file to import:')
+    L_file_name_mill.config(text = file_name_mill)
+
+def BrowseDrill():
+    global file_name_drill
+    import tkFileDialog
+    file_name_drill = tkFileDialog.askopenfilename(parent=top,initialdir=initial_directory,
+                                        filetypes= [('nc files', '*.ngc'),('nc files', '*.nc')],
+                                        title='Choose Drill file to import:')
+    L_file_name_drill.config(text = file_name_drill)
 
 def OK() :
-    global OK, file_in_name
-    if file_in_name == "": OK = False
+    global OK, file_name_mill
+    if file_name_mill == "": OK = False
     else: OK = True
     top.destroy()
 
 def Cancel() :
-    global OK    
+    global OK
     OK = False
     top.destroy()   
 
@@ -260,18 +271,20 @@ get_opti        = BooleanVar()
 
 # define the label, checkbutton, radiobutton, button and entry widgets:
 # Label widgets:
-L_blank1        = Label(top, text="")
-L_blank2        = Label(top, text="")
-L_blank3        = Label(top, text="")                       
-L_blank4        = Label(top, text="")
-L_blank5        = Label(top, text="")    
-L_units         = Label(top, text="Units to use:")
-L_grid_def      = Label(top, text="Define grid by:")
-L_X_eq          = Label(top, text="X  = ")
-L_Y_eq          = Label(top, text="Y  = ")
-L_etch_depth    = Label(top, text="Etch depth:")
-L_file_in_quest = Label(top, text="File to import:")
-L_file_in_name  = Label(top, text="")
+L_blank1           = Label(top, text="")
+L_blank2           = Label(top, text="")
+L_blank3           = Label(top, text="")                       
+L_blank4           = Label(top, text="")
+L_blank5           = Label(top, text="")    
+L_units            = Label(top, text="Units to use:")
+L_grid_def         = Label(top, text="Define grid by:")
+L_X_eq             = Label(top, text="X  = ")
+L_Y_eq             = Label(top, text="Y  = ")
+L_etch_depth       = Label(top, text="Etch depth:")
+L_file_mill_quest  = Label(top, text="Mill file:")
+L_file_name_mill   = Label(top, text= file_name_mill)
+L_file_drill_quest = Label(top, text="Drill file:")
+L_file_name_drill  = Label(top, text= file_name_drill)
 
 # Checkbutton
 C_opti = Checkbutton(top, text="Use Opti to optimise etch path", variable=get_opti)
@@ -283,7 +296,8 @@ RB_lines        = Radiobutton(top, padx=45, text="number of grid lines", variabl
 RB_step         = Radiobutton(top, padx=45, text="grid step size",       variable=get_grid_def, value="step size",  command=Def_sel)
 
 # Button widgets:
-B_browse        = Button(top, text ="Browse...", command = Browse)
+B_browse_mill   = Button(top, text ="Browse...", command = BrowseMill)
+B_browse_drill  = Button(top, text ="Browse...", command = BrowseDrill)
 B_cancel        = Button(top, text ="CANCEL",    command = Cancel)
 B_OK            = Button(top, text ="OK",        command = OK)
 
@@ -336,13 +350,16 @@ Ent_etch_depth.grid (row=6, column=2, sticky=W)
 
 C_opti.grid         (row=6, column=0, padx = 43)
 
-L_blank4.grid       (row=9, column=1)
-L_file_in_quest.grid(row=10, column=0, sticky=W, padx = 25)
-L_file_in_name.grid (row=11, column=0, columnspan = 7)
-B_browse.grid       (row=13, column=0, sticky=W, padx = 25)
-B_OK.grid           (row=13, column=1, sticky=W, padx = 43)
-B_cancel.grid       (row=13, column=2)
-L_blank5.grid       (row=14, column=1)
+L_blank4.grid           (row=9, column=1)
+L_file_mill_quest.grid  (row=10, column=0, sticky=W, padx = 25)
+L_file_name_mill.grid   (row=10, column=1, columnspan = 2)
+B_browse_mill.grid      (row=10, column=3, sticky=W, padx = 25)
+L_file_drill_quest.grid (row=11, column=0, sticky=W, padx = 25)
+L_file_name_drill.grid  (row=11, column=1, columnspan = 2)
+B_browse_drill.grid     (row=11, column=3, sticky=W, padx = 25)
+B_OK.grid               (row=13, column=1, sticky=W, padx = 43)
+B_cancel.grid           (row=13, column=2)
+L_blank5.grid           (row=14, column=1)
 
 
 ## Tkinter defaults
@@ -379,15 +396,22 @@ if OK == True:
 
     # Do optimisation first?
     if opti == True:
-        n = file_in_name.rfind(".")
-        file_out_name = file_in_name[0:n] + "_OPT.nc"
+        n = file_name_mill.rfind(".")
+        file_out_name = file_name_mill[0:n] + "_OPT.nc"
         import subprocess
-        p = subprocess.call([opti_path, file_in_name, file_out_name])
-        file_in_name = file_out_name
+        p = subprocess.call([opti_path, file_name_mill, file_out_name])
+        file_name_mill = file_out_name
+#TODO: optimize drill too ver si funciona
+        n = file_name_drill.rfind(".")
+        file_out_name = file_name_drill[0:n] + "_OPT.nc"
+        import subprocess
+        p = subprocess.call([opti_path, file_name_drill, file_out_name])
+        file_name_drill = file_out_name
 
-    # read in G code file
-    if file_in_name != None:   
-        f = open(file_in_name, 'r')
+    # read in Mill G code file
+    if file_name_mill != None:
+        file_in_name = file_name_mill
+        f = open(file_name_mill, 'r')
         for line in f:
             file_in.append(line)
         f.close()
@@ -409,23 +433,38 @@ if OK == True:
     # parse each character
         char_ptr = 0
         num_chars= len(line)
+        coord_count = 0
+        G_found     = False
         while char_ptr < num_chars:
             char = line[char_ptr]      
             if '(;'.find(char) != -1:
                 break              
             elif char == 'G' :
-                G_dest = get_num(line,char_ptr,num_chars)   
+                G_dest = get_num(line,char_ptr,num_chars)
+                coord_count = coord_count+1
+                G_found = True
             elif char == 'X' :
                 X_dest = float(get_num(line,char_ptr,num_chars))
+                coord_count = coord_count+1
             elif char == 'Y' :
                 Y_dest = float(get_num(line,char_ptr,num_chars))
+                coord_count = coord_count + 1
             elif char == 'Z' :
                 Z_dest = float(get_num(line,char_ptr,num_chars))
+                coord_count = coord_count + 1
             char_ptr = char_ptr + 1
-            
+
+        
+        #Llevar registro de la ultima instruccion que puede persistir
+        if G_found:
+            if G_dest == '01' or G_dest == '00':
+                G_move = G_dest
+        else:
+            if coord_count > 0:
+                G_dest = G_move
+
         # if the line is an etch move, then replace the line with an etch call        
-#        if G_dest == '01' and Z_dest > etch_definition:
-        if Z_dest > etch_definition and Z_dest < 0:
+        if G_dest == '01' and Z_dest > etch_definition:
 
             line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest)
 
@@ -441,7 +480,7 @@ if OK == True:
                 Y_max = Y_dest
                 is_first_Y = False
             else : (Y_min, Y_max) = test_Y(Y_min, Y_max)
-             
+     
         file_out.append(line)
         line_ptr=line_ptr+1
 
@@ -490,7 +529,10 @@ if OK == True:
         from time import localtime, strftime
         line = ";Etch_Z_adjust: \n"
         intro.append(line)
-        line = "(imported from   " + file_in_name + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
+        line = "(imported from   " + file_name_mill + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
+        intro.append(line)
+#TODO si se utilizo archivo de barrenos mencionarlo
+        line = "(imported from   " + file_name_drill + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
         intro.append(line)
         line = "(output saved as " + file_out_name + ")\n\n"
         intro.append(line)
