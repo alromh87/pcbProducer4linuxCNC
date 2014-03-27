@@ -65,27 +65,36 @@
 # UNITLESS DEFAULTS: These values are not unit sensitive (you can change these here)
 initial_directory = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing'
 opti_path         = ''
-X_grid_lines      =  10
-Y_grid_lines      =   5
+X_grid_lines      = 10
+Y_grid_lines      =  5
 units             = "inch"
 grid_def          = "step size"
+file_in_name      = ''
 file_name_mill    = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/back.ngc'
 file_name_drill   = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/drill.ngc'
 
+G_modal           = 0
+G_dest            = 0
+M_dest            = 0
+mill_loaded       = False
+mill_finished     = False
+drill_loaded      = False
+#drill_finished    = False
+first_drill       = True
+
+G_modal_codes     = [0,1,81]
+G_codes_probing   = [1,81]
   
 def Unit_set():
-    global units,units_G_code,G_move,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
+    global units,units_G_code,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
     global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size
     global X_grid_lines,Y_grid_lines,grid_def
-    global to_inch
 
     to_inch = 1/25.4
 
     # MM DEFAULTS: if units are mm, set the defaults in mm (you can change these here too)
 #    if units == "mm": 
     units_G_code      =    21
-    G_move            =   '00'
-    G_dest            =   '00'
     X_dest            = -80.00
     Y_dest            =  40.00
     Z_dest            =  40.00
@@ -104,7 +113,6 @@ def Unit_set():
     # INCH DEFAULTS: if units are inches, adjust them
     if units == "inch": 
         units_G_code      =                          20
-        G_dest            =                        '00'
         X_dest            =              X_dest*to_inch
         Y_dest            =              Y_dest*to_inch 
         Z_dest            =              Z_dest*to_inch
@@ -174,7 +182,7 @@ def BrowseDrill():
 
 def OK() :
     global OK, file_name_mill
-    if file_name_mill == "": OK = False
+    if file_name_mill == '' and file_name_drill == '' and file_name_outline == '': OK = False
     else: OK = True
     top.destroy()
 
@@ -245,11 +253,13 @@ def test_Y(Y_min, Y_max):
             
 
 ## Don't change these ...
-file_in  = []
-file_out = []
-intro    = []
-numstr   = ''
-char     = ''
+file_in      = []
+file_out     = []
+intro        = []
+numstr       = ''
+char         = ''
+drill_guides = []
+drill_moves  = []
 
 # Set units up to start
 Unit_set()
@@ -398,22 +408,36 @@ if OK == True:
 
     # Do optimisation first?
     if opti == True:
-        n = file_name_mill.rfind(".")
-        file_out_name = file_name_mill[0:n] + "_OPT.nc"
-        import subprocess
-        p = subprocess.call([opti_path, file_name_mill, file_out_name])
-        file_name_mill = file_out_name
-#TODO: optimize drill too ver si funciona
-        n = file_name_drill.rfind(".")
-        file_out_name = file_name_drill[0:n] + "_OPT.nc"
-        import subprocess
-        p = subprocess.call([opti_path, file_name_drill, file_out_name])
-        file_name_drill = file_out_name
+        if file_name_mill != '':
+            n = file_name_mill.rfind(".")
+            file_out_name = file_name_mill[0:n] + "_OPT.nc"
+            import subprocess
+            p = subprocess.call([opti_path, file_name_mill, file_out_name])
+            file_name_mill = file_out_name
+
+#TODO: optimize drill too, ver si funciona
+        if file_name_drill != '':
+            n = file_name_drill.rfind(".")
+            file_out_name = file_name_drill[0:n] + "_OPT.nc"
+            import subprocess
+            p = subprocess.call([opti_path, file_name_drill, file_out_name])
+            file_name_drill = file_out_name
 
     # read in Mill G code file
-    if file_name_mill != None:
+    if file_name_mill != '':
         file_in_name = file_name_mill
         f = open(file_name_mill, 'r')
+        mill_loaded = True
+        for line in f:
+            file_in.append(line)
+        f.close()
+
+    # read in Drill G code file
+    if file_name_drill != '':
+        if file_in_name == '':
+            file_in_name = file_name_drill
+        f = open(file_name_drill, 'r')
+        drill_loaded = True
         for line in f:
             file_in.append(line)
         f.close()
@@ -442,7 +466,7 @@ if OK == True:
             if '(;'.find(char) != -1:
                 break              
             elif char == 'G' :
-                G_dest = get_num(line,char_ptr,num_chars)
+                G_dest = int(get_num(line,char_ptr,num_chars))
                 coord_count = coord_count+1
                 G_found = True
             elif char == 'X' :
@@ -454,23 +478,30 @@ if OK == True:
             elif char == 'Z' :
                 Z_dest = float(get_num(line,char_ptr,num_chars))
                 coord_count = coord_count + 1
+            elif char == 'M' :
+                M_dest = int(get_num(line,char_ptr,num_chars))
             char_ptr = char_ptr + 1
 
+        if M_dest == 2:        # We ignore program end, since we are still adding files
+            line_ptr=line_ptr+1
+            if mill_loaded:
+                if not mill_finished:
+                    mill_finished = True
+#            elif drill_loaded:
+#                drill_finished = True
+            continue
         
-        #Llevar registro de la ultima instruccion que puede persistir
+        # Thake in account modal instructions
         if G_found:
-            if G_dest == '01' or G_dest == '00':
-                G_move = G_dest
+            if G_dest in G_modal_codes:
+                G_modal = G_dest
         else:
             if coord_count > 0:
-                G_dest = G_move
+                G_dest = G_modal
 
-        # if the line is an etch move, then replace the line with an etch call        
-        if G_dest == '01' and Z_dest > etch_definition:
-
-            line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest)
-
-            # and now check for max and min X and Y values
+        # if we should consider coordinates for probbing
+        if G_dest in G_codes_probing:
+            # then check for max and min X and Y values
             if is_first_X == True :
                 X_min = X_dest
                 X_max = X_dest
@@ -482,8 +513,29 @@ if OK == True:
                 Y_max = Y_dest
                 is_first_Y = False
             else : (Y_min, Y_max) = test_Y(Y_min, Y_max)
-     
-        file_out.append(line)
+
+        # if the line is an etch move, then replace the line with an etch call        
+        if G_dest == 1 and Z_dest > etch_definition:
+            line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest)
+
+        # if the line is a drill move, then replace the line with an adjusted drill call        
+        if G_dest == 81:
+            if mill_finished:
+                if first_drill:
+                    line = '\n(Iniciando guias de barrenos)\n\nM3      ( Spindle on clockwise.        )\n'
+                    drill_guides.append(line)
+                    first_drill = False
+#                line = 'O300 call [%.4f] [%.4f]\n' % (X_dest,Y_dest)
+                line = '(Creando guia de barreno)\n'
+                drill_guides.append(line)
+#            line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest)
+            line = '(Perforando)\n'#line, '(Perforando)\n' 
+            #and if we have loaded mill add drill guides
+              
+        if mill_finished:
+            drill_moves.append(line)
+        else:
+            file_out.append(line)
         line_ptr=line_ptr+1
 
     # Now we have processed the data, check for etch moves
@@ -683,7 +735,10 @@ O001 endwhile
         intro.append(line)
 
         # Finally, create and then save the output file
-        file_out = intro + file_out
+        file_out = intro + file_out + drill_guides + drill_moves
+
+        line = 'M02 (End Program)\n'
+        file_out.append(line)
 
         f = open(file_out_name, 'w')
         for line in file_out:
