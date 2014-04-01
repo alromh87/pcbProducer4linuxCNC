@@ -87,7 +87,7 @@ G_codes_probing   = [1,81]
   
 def Unit_set():
     global units,units_G_code,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
-    global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size
+    global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size,tool_probe
     global X_grid_lines,Y_grid_lines,grid_def
 
     to_inch = 1/25.4
@@ -105,6 +105,7 @@ def Unit_set():
     probe_speed       =  25.00
     z_safety          =   1.00  
     z_probe           =  -1.00
+    tool_probe        = -20.00
     z_trivial         =   0.02
     z_probe_detach    =  15.00
     grid_clearance    =   0.01
@@ -123,6 +124,7 @@ def Unit_set():
         probe_speed       =         probe_speed*to_inch
         z_safety          =            z_safety*to_inch
         z_probe           =             z_probe*to_inch
+        tool_probe        =          tool_probe*to_inch
         z_trivial         =           z_trivial*to_inch
         z_probe_detach    =      z_probe_detach*to_inch
         grid_clearance    =      grid_clearance*to_inch
@@ -131,7 +133,7 @@ def Unit_set():
 
 def Unit_sel():
     global units,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
-    global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size
+    global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size,tool_probe
     global X_grid_lines,Y_grid_lines,grid_def, file_name_mill, file_name_drill
     
     units = get_units.get()
@@ -447,6 +449,8 @@ if OK == True:
     is_first_Y = True
     is_first_Z = True
 
+    tool_change_commanded = False
+
     # parse each line
     line_ptr=0
     num_lines=len(file_in)
@@ -494,6 +498,13 @@ if OK == True:
 #            elif drill_loaded:
 #                drill_finished = True
             continue
+
+        if M_dest == 6:        # If tool change comanded wait for programm pause
+            tool_change_commanded = True
+
+        if tool_change_commanded and M_dest == 0:
+            line = line + "O<_probe_tool> call \n"
+            tool_change_commanded = False
         
         # Thake in account modal instructions
         if G_found:
@@ -531,12 +542,11 @@ if OK == True:
                     first_drill = False
 #                line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, etch_depth, z_safety, F_dest) #Para menor tiempo
                 line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, etch_depth, R_dest, F_dest)
-
                 drill_guides.append(line)
-            line = "(perforando)\n"
-#            line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, Z_dest, R_dest, F_dest)
-            #and if we have loaded mill add drill guides
-              
+
+            #and if we have loaded mill add drill guides              
+            line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, Z_dest, R_dest, F_dest)
+
         if mill_finished:
             drill_moves.append(line)
         else:
@@ -609,9 +619,11 @@ if OK == True:
         intro.append(line)
         line = "#<_z_probe>       =   %.4f \n" % (z_probe)
         intro.append(line)
-        line = "#<_z_trivial>     =    %.4f \n\n" % (z_trivial)
-
+        line = "#<_tool_probe>    =   %.4f \n" % (tool_probe)
         intro.append(line)
+        line = "#<_z_trivial>     =    %.4f \n\n" % (z_trivial)
+        intro.append(line)
+
         line = "(Don't change these values here, they were calculated earlier)\n"
         intro.append(line)
         line =  '#<_x_grid_origin> =  %.4f \n' % (X_grid_origin) 
@@ -698,53 +710,80 @@ if OK == True:
 
 (***************************)
     O300 sub (compensated drill subroutine)
-         ( This subroutine create z_compensated holes)
+        ( This subroutine create z_compensated holes)
 
-         #<x_dest>          = #1
-         #<y_dest>          = #2
-         #<z_dest>          = #3
-         #<r_dest>          = #4
-         #<f_dest>          = #5
+        #<x_dest>          = #1
+        #<y_dest>          = #2
+        #<z_dest>          = #3
+        #<r_dest>          = #4
+        #<f_dest>          = #5
 
-         #<_grid_x_w>  =  [[#<x_dest> - #<_x_grid_origin>]/#<_x_step_size>]
-         #<_grid_y_w>  =  [[#<y_dest> - #<_y_grid_origin>]/#<_y_step_size>]
-         #<_grid_x_0>  =  fix[#<_grid_x_w>]
-         #<_grid_y_0>  =  fix[#<_grid_y_w>]
-         #<_grid_x_1>  =  fup[#<_grid_x_w>]
-         #<_grid_y_1>  =  fup[#<_grid_y_w>]
-         #<_cell_x_w>  =  [#<_grid_x_w> - #<_grid_x_0>]
-         #<_cell_y_w>  =  [#<_grid_y_w> - #<_grid_y_0>]
+        #<_grid_x_w>  =  [[#<x_dest> - #<_x_grid_origin>]/#<_x_step_size>]
+        #<_grid_y_w>  =  [[#<y_dest> - #<_y_grid_origin>]/#<_y_step_size>]
+        #<_grid_x_0>  =  fix[#<_grid_x_w>]
+        #<_grid_y_0>  =  fix[#<_grid_y_w>]
+        #<_grid_x_1>  =  fup[#<_grid_x_w>]
+        #<_grid_y_1>  =  fup[#<_grid_y_w>]
+        #<_cell_x_w>  =  [#<_grid_x_w> - #<_grid_x_0>]
+        #<_cell_y_w>  =  [#<_grid_y_w> - #<_grid_y_0>]
 
-         (Bilinear interpolation equations from http://en.wikipedia.org/wiki/Bilinear_interpolation)
-         #<F00>        =  #[1000 + #<_grid_x_0> + #<_grid_y_0> * #<_x_grid_lines>]
-         #<F01>        =  #[1000 + #<_grid_x_0> + #<_grid_y_1> * #<_x_grid_lines>]
-         #<F10>        =  #[1000 + #<_grid_x_1> + #<_grid_y_0> * #<_x_grid_lines>]
-         #<F11>        =  #[1000 + #<_grid_x_1> + #<_grid_y_1> * #<_x_grid_lines>] 
-         #<b1>         =  #<F00>
-         #<b2>         =  [#<F10> - #<F00>]
-         #<b3>         =  [#<F01> - #<F00>]
-         #<b4>         =  [#<F00> - #<F10> - #<F01> + #<F11>]          
-         #<z_adj>      =  [#<b1> + #<b2>*#<_cell_x_w> + #<b3>*#<_cell_y_w> + #<b4>*#<_cell_x_w>*#<_cell_y_w>]
-         #<z_etch>     =  [#<z_dest> + #<z_adj>]
-                       
-         (ignore trivial z axis moves)\n"""
+        (Bilinear interpolation equations from http://en.wikipedia.org/wiki/Bilinear_interpolation)
+        #<F00>        =  #[1000 + #<_grid_x_0> + #<_grid_y_0> * #<_x_grid_lines>]
+        #<F01>        =  #[1000 + #<_grid_x_0> + #<_grid_y_1> * #<_x_grid_lines>]
+        #<F10>        =  #[1000 + #<_grid_x_1> + #<_grid_y_0> * #<_x_grid_lines>]
+        #<F11>        =  #[1000 + #<_grid_x_1> + #<_grid_y_1> * #<_x_grid_lines>] 
+        #<b1>         =  #<F00>
+        #<b2>         =  [#<F10> - #<F00>]
+        #<b3>         =  [#<F01> - #<F00>]
+        #<b4>         =  [#<F00> - #<F10> - #<F01> + #<F11>]          
+        #<z_adj>      =  [#<b1> + #<b2>*#<_cell_x_w> + #<b3>*#<_cell_y_w> + #<b4>*#<_cell_x_w>*#<_cell_y_w>]
+        #<z_etch>     =  [#<z_dest> + #<z_adj>]
               
-        intro.append(line)
-        line = "         O301 if [abs[#<z_etch> - #<_last_z_etch> ] lt #<_z_trivial>]" 
-        intro.append(line)
-        line = """
-                   #<z_etch> = #<_last_z_etch> 
-         O301 else
-                   #<_last_z_etch> = #<z_etch>
-         O301 endif
-              
-         (now do the move)
-         (G81. R0.19685   Z-0.01969   F39.37008 X2.29030 Y1.09330)
-         G81.  R#<r_dest> Z#<z_etch>  X#<x_dest>  Y#<y_dest> F#<f_dest>
+        (now do the move)
+        (G81. R0.19685   Z-0.01969   F39.37008 X2.29030 Y1.09330)
+        G81.  R#<r_dest> Z#<z_etch>  X#<x_dest>  Y#<y_dest> F#<f_dest>
               
     O300 endsub
 
 (************************)
+
+    O<_probe_init> sub (Medir longitud de herremienta primaria)
+        G49				( clear tool length compensation)
+        G30				( to probe switch)
+        ;(Ajustar mecanica para acercarse rapido y luego medir con precision, resortes)
+        ;G91				( relative mode for probing)
+        ;G38.2 Z-90 F#<_probe_speed>	( trip switch on the way down)
+        ;G0 Z1               		( back off the switch)
+        G38.2 Z#<_tool_probe> F#<_probe_speed>	( trip switch slowly)
+ 
+        #<_ToolRefZ> = #5063  ( save trip point)
+ 
+        ;G90                 ( absolute mode)
+        G30                 ( return to safe level)
+    O<_probe_init> endsub
+
+    O<_probe_tool> sub (Medir longitud de herramienta y compensar)
+        G49					( clear tool length compensation)
+        G30					( to probe switch)
+        ;G91					( relative mode for probing)
+        ;G38.2 Z-90 F#<_probe_speed>		( trip switch on the way down)
+        ;G0 Z1          	     		( back off the switch)
+        G38.2 Z#<_tool_probe> F#<_probe_speed>				( trip switch slowly)
+ 
+        #<_ToolZ> = #5063			( save new tool length)
+ 
+        G43.1 Z[#<_ToolZ> - #<_ToolRefZ>]	( set new length)
+ 
+        ;G90					( absolute mode)
+        G30					( return to safe level)
+    O<_probe_tool> endsub
+
+(Medir altura de herramienta principal)
+(MSG, Verificar ubicacion de cambiador de herramienta)
+M0
+
+O<_probe_init> call
+G0 X0 Y0
 
 ( Probe grid section                                                                )
 ( This section probes the grid and writes the probe results for each probed point   )
@@ -784,8 +823,7 @@ O001 endwhile
 ( O200 is the etch subroutine                                                       )
 
 (MSG, OK folks - power up the mill...)
-
-;M00  (Nos saltamos la pausa porque si tenemos control de encendido)
+;M0
 
 """
         intro.append(line)
