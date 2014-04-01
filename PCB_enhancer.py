@@ -478,6 +478,10 @@ if OK == True:
             elif char == 'Z' :
                 Z_dest = float(get_num(line,char_ptr,num_chars))
                 coord_count = coord_count + 1
+            elif char == 'R' :
+                R_dest = float(get_num(line,char_ptr,num_chars))
+            elif char == 'F' :
+                F_dest = float(get_num(line,char_ptr,num_chars))
             elif char == 'M' :
                 M_dest = int(get_num(line,char_ptr,num_chars))
             char_ptr = char_ptr + 1
@@ -525,11 +529,12 @@ if OK == True:
                     line = '\n(Iniciando guias de barrenos)\n\nM3      ( Spindle on clockwise.        )\n'
                     drill_guides.append(line)
                     first_drill = False
-#                line = 'O300 call [%.4f] [%.4f]\n' % (X_dest,Y_dest)
-                line = '(Creando guia de barreno)\n'
+#                line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, etch_depth, z_safety, F_dest) #Para menor tiempo
+                line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, etch_depth, R_dest, F_dest)
+
                 drill_guides.append(line)
-#            line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest)
-            line = '(Perforando)\n'#line, '(Perforando)\n' 
+            line = "(perforando)\n"
+#            line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, Z_dest, R_dest, F_dest)
             #and if we have loaded mill add drill guides
               
         if mill_finished:
@@ -689,6 +694,57 @@ if OK == True:
               #<waypoint_number> = [#<waypoint_number> - 1]         
          O201 endwhile
     O200 endsub
+
+
+(***************************)
+    O300 sub (compensated drill subroutine)
+         ( This subroutine create z_compensated holes)
+
+         #<x_dest>          = #1
+         #<y_dest>          = #2
+         #<z_dest>          = #3
+         #<r_dest>          = #4
+         #<f_dest>          = #5
+
+         #<_grid_x_w>  =  [[#<x_dest> - #<_x_grid_origin>]/#<_x_step_size>]
+         #<_grid_y_w>  =  [[#<y_dest> - #<_y_grid_origin>]/#<_y_step_size>]
+         #<_grid_x_0>  =  fix[#<_grid_x_w>]
+         #<_grid_y_0>  =  fix[#<_grid_y_w>]
+         #<_grid_x_1>  =  fup[#<_grid_x_w>]
+         #<_grid_y_1>  =  fup[#<_grid_y_w>]
+         #<_cell_x_w>  =  [#<_grid_x_w> - #<_grid_x_0>]
+         #<_cell_y_w>  =  [#<_grid_y_w> - #<_grid_y_0>]
+
+         (Bilinear interpolation equations from http://en.wikipedia.org/wiki/Bilinear_interpolation)
+         #<F00>        =  #[1000 + #<_grid_x_0> + #<_grid_y_0> * #<_x_grid_lines>]
+         #<F01>        =  #[1000 + #<_grid_x_0> + #<_grid_y_1> * #<_x_grid_lines>]
+         #<F10>        =  #[1000 + #<_grid_x_1> + #<_grid_y_0> * #<_x_grid_lines>]
+         #<F11>        =  #[1000 + #<_grid_x_1> + #<_grid_y_1> * #<_x_grid_lines>] 
+         #<b1>         =  #<F00>
+         #<b2>         =  [#<F10> - #<F00>]
+         #<b3>         =  [#<F01> - #<F00>]
+         #<b4>         =  [#<F00> - #<F10> - #<F01> + #<F11>]          
+         #<z_adj>      =  [#<b1> + #<b2>*#<_cell_x_w> + #<b3>*#<_cell_y_w> + #<b4>*#<_cell_x_w>*#<_cell_y_w>]
+         #<z_etch>     =  [#<z_dest> + #<z_adj>]
+                       
+         (ignore trivial z axis moves)\n"""
+              
+        intro.append(line)
+        line = "         O301 if [abs[#<z_etch> - #<_last_z_etch> ] lt #<_z_trivial>]" 
+        intro.append(line)
+        line = """
+                   #<z_etch> = #<_last_z_etch> 
+         O301 else
+                   #<_last_z_etch> = #<z_etch>
+         O301 endif
+              
+         (now do the move)
+         (G81. R0.19685   Z-0.01969   F39.37008 X2.29030 Y1.09330)
+         G81.  R#<r_dest> Z#<z_etch>  X#<x_dest>  Y#<y_dest> F#<f_dest>
+              
+    O300 endsub
+
+(************************)
 
 ( Probe grid section                                                                )
 ( This section probes the grid and writes the probe results for each probed point   )
