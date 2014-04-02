@@ -79,7 +79,7 @@ M_dest            = 0
 mill_loaded       = False
 mill_finished     = False
 drill_loaded      = False
-#drill_finished    = False
+drill_finished    = False
 first_drill       = True
 
 G_modal_codes     = [0,1,81]
@@ -497,13 +497,18 @@ if OK == True:
             char_ptr = char_ptr + 1
 
         if M_dest == 2:        # We ignore program end, since we are still adding files
+            line = "M5 (Detener usillo)\n"
             line_ptr=line_ptr+1
-            if mill_loaded:
-                if not mill_finished:
-                    mill_finished = True
-#            elif drill_loaded:
-#                drill_finished = True
-            continue
+            if mill_loaded and not mill_finished:
+                mill_finished = True
+                M_dest = 0
+                file_out.append(line)
+            elif drill_loaded and not drill_finished:
+                drill_finished = True
+                if mill_finished:
+                    drill_guides.append(line)
+
+            continue            
 
         if M_dest == 6:        # If tool change comanded wait for programm pause
             tool_change_commanded = True
@@ -541,16 +546,15 @@ if OK == True:
 
         # if the line is a drill move, then replace the line with an adjusted drill call        
         if G_dest == 81:
-            if mill_finished:
+            if mill_finished: #If we have loaded mill, add drill guides              
                 if first_drill:
-                    line = '\n(Iniciando guias de barrenos)\n\nM3      ( Spindle on clockwise.        )\n'
+                    line = '\n(MSG, Iniciando guias de barrenos)\nM0\n\nM3      ( Spindle on clockwise.        )\n'
                     drill_guides.append(line)
                     first_drill = False
 #                line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, etch_depth, z_safety, F_dest) #Para menor tiempo
                 line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, etch_depth, R_dest, F_dest)
                 drill_guides.append(line)
 
-            #and if we have loaded mill add drill guides              
             line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, Z_dest, R_dest, F_dest)
 
         if mill_finished:
