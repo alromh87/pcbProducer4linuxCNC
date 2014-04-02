@@ -167,20 +167,26 @@ def Def_sel():
         Ent_Y.insert(0, Y_grid_lines)        
 
 def BrowseMill():
-    global file_name_mill
+    global file_name_mill, initial_directory
     import tkFileDialog
     file_name_mill = tkFileDialog.askopenfilename(parent=top,initialdir=initial_directory,
                                         filetypes= [('nc files', '*.ngc'),('nc files', '*.nc')],
                                         title='Choose Mill file to import:')
     L_file_name_mill.config(text = file_name_mill)
+    if file_name_mill != '':
+        n = file_name_mill.rfind("/")
+        initial_directory = file_name_mill[0:n]
 
 def BrowseDrill():
-    global file_name_drill
+    global file_name_drill, initial_directory
     import tkFileDialog
     file_name_drill = tkFileDialog.askopenfilename(parent=top,initialdir=initial_directory,
                                         filetypes= [('nc files', '*.ngc'),('nc files', '*.nc')],
                                         title='Choose Drill file to import:')
     L_file_name_drill.config(text = file_name_drill)
+    if file_name_drill != '':
+        n = file_name_drill.rfind("/")
+        initial_directory = file_name_drill[0:n]
 
 def OK() :
     global OK, file_name_mill
