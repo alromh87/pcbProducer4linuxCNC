@@ -579,11 +579,13 @@ if OK == True:
 
         # if the line is an etch move, then replace the line with an etch call        
         if G_dest == 1 and Z_dest < 0:
+            G_dest = -1
 #        if G_dest == 1 and Z_dest > etch_definition:
             line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest, Z_dest)
 
         # if the line is a drill move, then replace the line with an adjusted drill call        
         if G_dest == 81:
+            G_dest = -1
             if mill_finished: #If we have loaded mill, add drill guides              
                 if first_drill:
                     line = '\n(MSG, Iniciando guias de barrenos)\n\nM3      ( Spindle on clockwise.        )\n'
@@ -809,7 +811,7 @@ if OK == True:
         ;G0 Z1               		( back off the switch)
         G38.2 Z#<_tool_probe> F#<_probe_speed>	( trip switch slowly)
 
-        (MSG, Referencia de herramienta #5063)
+        (DEBUG, Referencia de herramienta primaria: #5063)
         #<_ToolRefZ> = #5063  ( save trip point)
  
         ;G90                 ( absolute mode)
@@ -824,7 +826,7 @@ if OK == True:
         ;G0 Z1          	     		( back off the switch)
         G38.2 Z#<_tool_probe> F#<_probe_speed>				( trip switch slowly)
  
-        (MSG, Referencia de herramienta #5063)
+        (DEBUG, Referencia de herramienta secundaria: #5063)
         #<_ToolZ> = #5063			( save new tool length)
  
         G43.1 Z[#<_ToolZ> - #<_ToolRefZ>]	( set new length)
