@@ -72,6 +72,7 @@ grid_def          = "step size"
 file_in_name      = ''
 file_name_mill    = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/back.ngc'
 file_name_drill   = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/drill.ngc'
+file_name_outline = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/outline.ngc'
 
 G_modal           = 0
 G_dest            = 0
@@ -81,6 +82,8 @@ mill_finished     = False
 drill_loaded      = False
 drill_finished    = False
 first_drill       = True
+outline_loaded    = False
+outline_finished  = False
 
 G_modal_codes     = [0,1,81]
 G_codes_probing   = [1,81]
@@ -188,6 +191,17 @@ def BrowseDrill():
         n = file_name_drill.rfind("/")
         initial_directory = file_name_drill[0:n]
 
+def BrowseOutline():
+    global file_name_outline, initial_directory
+    import tkFileDialog
+    file_name_outline = tkFileDialog.askopenfilename(parent=top,initialdir=initial_directory,
+                                        filetypes= [('nc files', '*.ngc'),('nc files', '*.nc')],
+                                        title='Choose Outline file to import:')
+    L_file_name_outline.config(text = file_name_outline)
+    if file_name_outline != '':
+        n = file_name_outline.rfind("/")
+        initial_directory = file_name_outline[0:n]
+
 def OK() :
     global OK, file_name_mill
     if file_name_mill == '' and file_name_drill == '' and file_name_outline == '': OK = False
@@ -261,13 +275,14 @@ def test_Y(Y_min, Y_max):
             
 
 ## Don't change these ...
-file_in      = []
-file_out     = []
-intro        = []
-numstr       = ''
-char         = ''
-drill_guides = []
-drill_moves  = []
+file_in        = []
+file_out       = []
+intro          = []
+numstr         = ''
+char           = ''
+drill_guides   = []
+drill_moves    = []
+outline_moves  = []
 
 # Set units up to start
 Unit_set()
@@ -289,20 +304,22 @@ get_opti        = BooleanVar()
 
 # define the label, checkbutton, radiobutton, button and entry widgets:
 # Label widgets:
-L_blank1           = Label(top, text="")
-L_blank2           = Label(top, text="")
-L_blank3           = Label(top, text="")                       
-L_blank4           = Label(top, text="")
-L_blank5           = Label(top, text="")    
-L_units            = Label(top, text="Units to use:")
-L_grid_def         = Label(top, text="Define grid by:")
-L_X_eq             = Label(top, text="X  = ")
-L_Y_eq             = Label(top, text="Y  = ")
-L_etch_depth       = Label(top, text="Etch depth:")
-L_file_mill_quest  = Label(top, text="Mill file:")
-L_file_name_mill   = Label(top, text= file_name_mill)
-L_file_drill_quest = Label(top, text="Drill file:")
-L_file_name_drill  = Label(top, text= file_name_drill)
+L_blank1             = Label(top, text="")
+L_blank2             = Label(top, text="")
+L_blank3             = Label(top, text="")                       
+L_blank4             = Label(top, text="")
+L_blank5             = Label(top, text="")    
+L_units              = Label(top, text="Units to use:")
+L_grid_def           = Label(top, text="Define grid by:")
+L_X_eq               = Label(top, text="X  = ")
+L_Y_eq               = Label(top, text="Y  = ")
+L_etch_depth         = Label(top, text="Etch depth:")
+L_file_mill_quest    = Label(top, text="Mill file:")
+L_file_name_mill     = Label(top, text= file_name_mill)
+L_file_drill_quest   = Label(top, text="Drill file:")
+L_file_name_drill    = Label(top, text= file_name_drill)
+L_file_outline_quest = Label(top, text="Outline file:")
+L_file_name_outline  = Label(top, text= file_name_outline)
 
 # Checkbutton
 C_opti = Checkbutton(top, text="Use Opti to optimise etch path", variable=get_opti)
@@ -314,10 +331,11 @@ RB_lines        = Radiobutton(top, padx=45, text="number of grid lines", variabl
 RB_step         = Radiobutton(top, padx=45, text="grid step size",       variable=get_grid_def, value="step size",  command=Def_sel)
 
 # Button widgets:
-B_browse_mill   = Button(top, text ="Browse...", command = BrowseMill)
-B_browse_drill  = Button(top, text ="Browse...", command = BrowseDrill)
-B_cancel        = Button(top, text ="CANCEL",    command = Cancel)
-B_OK            = Button(top, text ="OK",        command = OK)
+B_browse_mill     = Button(top, text ="Browse...", command = BrowseMill)
+B_browse_drill    = Button(top, text ="Browse...", command = BrowseDrill)
+B_browse_outline  = Button(top, text ="Browse...", command = BrowseOutline)
+B_cancel          = Button(top, text ="CANCEL",    command = Cancel)
+B_OK              = Button(top, text ="OK",        command = OK)
 
 # Entry widgets validation process
 # The validation process in Tkinter is not straight forward...
@@ -368,16 +386,19 @@ Ent_etch_depth.grid (row=6, column=2, sticky=W)
 
 C_opti.grid         (row=6, column=0, padx = 43)
 
-L_blank4.grid           (row=9, column=1)
-L_file_mill_quest.grid  (row=10, column=0, sticky=W, padx = 25)
-L_file_name_mill.grid   (row=10, column=1, columnspan = 2)
-B_browse_mill.grid      (row=10, column=3, sticky=W, padx = 25)
-L_file_drill_quest.grid (row=11, column=0, sticky=W, padx = 25)
-L_file_name_drill.grid  (row=11, column=1, columnspan = 2)
-B_browse_drill.grid     (row=11, column=3, sticky=W, padx = 25)
-B_OK.grid               (row=13, column=1, sticky=W, padx = 43)
-B_cancel.grid           (row=13, column=2)
-L_blank5.grid           (row=14, column=1)
+L_blank4.grid             (row=9, column=1)
+L_file_mill_quest.grid    (row=10, column=0, sticky=W, padx = 25)
+L_file_name_mill.grid     (row=10, column=1, columnspan = 2)
+B_browse_mill.grid        (row=10, column=3, sticky=W, padx = 25)
+L_file_drill_quest.grid   (row=11, column=0, sticky=W, padx = 25)
+L_file_name_drill.grid    (row=11, column=1, columnspan = 2)
+B_browse_drill.grid       (row=11, column=3, sticky=W, padx = 25)
+L_file_outline_quest.grid (row=12, column=0, sticky=W, padx = 25)
+L_file_name_outline.grid  (row=12, column=1, columnspan = 2)
+B_browse_outline.grid     (row=12, column=3, sticky=W, padx = 25)
+B_OK.grid                 (row=13, column=1, sticky=W, padx = 43)
+B_cancel.grid             (row=13, column=2)
+L_blank5.grid             (row=14, column=1)
 
 
 ## Tkinter defaults
@@ -450,6 +471,16 @@ if OK == True:
             file_in.append(line)
         f.close()
 
+    # read in Outline G code file
+    if file_name_outline != '':
+        if file_in_name == '':
+            file_in_name = file_name_outline
+        f = open(file_name_outline, 'r')
+        outline_loaded = True
+        for line in f:
+            file_in.append(line)
+        f.close()
+
     # Use these for checking max and min values later in the imported file
     is_first_X = True
     is_first_Y = True
@@ -498,17 +529,23 @@ if OK == True:
 
         if M_dest == 2:        # We ignore program end, since we are still adding files
             line = "M5 (Detener usillo)\n"
+            M_dest = -1
             line_ptr=line_ptr+1
             if mill_loaded and not mill_finished:
                 mill_finished = True
-                M_dest = 0
+                if outline_loaded and not drill_loaded:
+                    line = "T1\n" + line + "M6\n(MSG, Coloque cortador recto para exterior)\nM0\nO<_probe_tool> call\n"
                 file_out.append(line)
             elif drill_loaded and not drill_finished:
                 drill_finished = True
                 if mill_finished:
                     drill_guides.append(line)
-
-            continue            
+                if outline_loaded:
+                    line = "T1\n" + line + "M6\n(MSG, Coloque cortador recto para exterior)\nM0\nO<_probe_tool> call\n"
+                    drill_moves.append(line)
+            elif outline_loaded and not outline_finished:
+                    outline_finished = True
+            continue
 
         if M_dest == 6:        # If tool change comanded wait for programm pause
             tool_change_commanded = True
@@ -541,14 +578,15 @@ if OK == True:
             else : (Y_min, Y_max) = test_Y(Y_min, Y_max)
 
         # if the line is an etch move, then replace the line with an etch call        
-        if G_dest == 1 and Z_dest > etch_definition:
-            line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest)
+        if G_dest == 1 and Z_dest < 0:
+#        if G_dest == 1 and Z_dest > etch_definition:
+            line = 'O200 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_start, Y_start, X_dest, Y_dest, Z_dest)
 
         # if the line is a drill move, then replace the line with an adjusted drill call        
         if G_dest == 81:
             if mill_finished: #If we have loaded mill, add drill guides              
                 if first_drill:
-                    line = '\n(MSG, Iniciando guias de barrenos)\nM0\n\nM3      ( Spindle on clockwise.        )\n'
+                    line = '\n(MSG, Iniciando guias de barrenos)\n\nM3      ( Spindle on clockwise.        )\n'
                     drill_guides.append(line)
                     first_drill = False
 #                line = 'O300 call [%.4f] [%.4f] [%.4f] [%.4f] [%.4f]\n' % (X_dest, Y_dest, etch_depth, z_safety, F_dest) #Para menor tiempo
@@ -559,7 +597,9 @@ if OK == True:
 
         if mill_finished:
             drill_moves.append(line)
-        else:
+        elif drill_finished:
+            outline_moves.append(line)
+        else:    
             file_out.append(line)
         line_ptr=line_ptr+1
 
@@ -608,12 +648,14 @@ if OK == True:
         from time import localtime, strftime
         line = ";Etch_Z_adjust: \n"
         intro.append(line)
-        line = "(imported from   " + file_name_mill + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
+        line = "(Imported from:  " + file_name_mill + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
         intro.append(line)
 #TODO si se utilizo archivo de barrenos mencionarlo
-        line = "(imported from   " + file_name_drill + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
+        line = "(Drill file:     " + file_name_drill + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
         intro.append(line)
-        line = "(output saved as " + file_out_name + ")\n\n"
+        line = "(Outline file:   " + file_name_outline + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
+        intro.append(line)
+        line = "(Output saved as " + file_out_name + ")\n\n"
         intro.append(line)
         line = "(G code configuration section)\n(you can change these values in the python code or in the G code output:)\n"
         intro.append(line)
@@ -669,6 +711,7 @@ if OK == True:
          #<y_start>         = #2
          #<x_dest>          = #3
          #<y_dest>          = #4
+         #<z_dest>          = #5
          #<distance>        = sqrt[ [#<x_dest> - #<x_start>]**2 + [#<y_dest> - #<y_start>]**2 ]
          #<waypoint_number> = fix[#<distance> / [#<_x_step_size>/2]]
          #<x_step>          = [[#<x_dest> - #<x_start>] / [#<waypoint_number> + 1]]
@@ -696,7 +739,7 @@ if OK == True:
               #<b3>         =  [#<F01> - #<F00>]
               #<b4>         =  [#<F00> - #<F10> - #<F01> + #<F11>]          
               #<z_adj>      =  [#<b1> + #<b2>*#<_cell_x_w> + #<b3>*#<_cell_y_w> + #<b4>*#<_cell_x_w>*#<_cell_y_w>]
-              #<z_etch>     =  [#<_etch_depth> + #<z_adj>]
+              #<z_etch>     =  [#<z_dest> + #<z_adj>]
                        
               (ignore trivial z axis moves)\n"""
               
@@ -713,7 +756,7 @@ if OK == True:
               G01 X#<_x_way>  Y#<_y_way>  Z[#<z_etch>] F[#<_etch_speed>]
               
               (and then go to the next way point)
-              #<waypoint_number> = [#<waypoint_number> - 1]         
+              #<waypoint_number> = [#<waypoint_number> - 1]
          O201 endwhile
     O200 endsub
 
@@ -765,7 +808,8 @@ if OK == True:
         ;G38.2 Z-90 F#<_probe_speed>	( trip switch on the way down)
         ;G0 Z1               		( back off the switch)
         G38.2 Z#<_tool_probe> F#<_probe_speed>	( trip switch slowly)
- 
+
+        (MSG, Referencia de herramienta #5063)
         #<_ToolRefZ> = #5063  ( save trip point)
  
         ;G90                 ( absolute mode)
@@ -780,6 +824,7 @@ if OK == True:
         ;G0 Z1          	     		( back off the switch)
         G38.2 Z#<_tool_probe> F#<_probe_speed>				( trip switch slowly)
  
+        (MSG, Referencia de herramienta #5063)
         #<_ToolZ> = #5063			( save new tool length)
  
         G43.1 Z[#<_ToolZ> - #<_ToolRefZ>]	( set new length)
@@ -839,7 +884,7 @@ O001 endwhile
         intro.append(line)
 
         # Finally, create and then save the output file
-        file_out = intro + file_out + drill_guides + drill_moves
+        file_out = intro + file_out + drill_guides + drill_moves + outline_moves
 
         line = 'M02 (End Program)\n'
         file_out.append(line)
