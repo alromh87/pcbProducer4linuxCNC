@@ -89,7 +89,7 @@ G_modal_codes     = [0,1,81]
 G_codes_probing   = [1,81]
   
 def Unit_set():
-    global units,units_G_code,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
+    global units,units_G_code,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,probe_speed_fast,z_safety,z_probe
     global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size,tool_probe
     global X_grid_lines,Y_grid_lines,grid_def
 
@@ -97,22 +97,23 @@ def Unit_set():
 
     # MM DEFAULTS: if units are mm, set the defaults in mm (you can change these here too)
 #    if units == "mm": 
-    units_G_code      =    21
-    X_dest            = -80.00
-    Y_dest            =  40.00
-    Z_dest            =  40.00
-    etch_definition   =  -0.50
-    etch_speed        = 120.00
-    etch_depth        =   0.10
-    etch_max          =   0.50
-    probe_speed       =  25.00
-    z_safety          =   1.00  
-    z_probe           =  -1.00
-    tool_probe        = -20.00
-    z_trivial         =   0.02
-    z_probe_detach    =  15.00
-    grid_clearance    =   0.01
-    step_size         =  10.00
+    units_G_code      =              21
+    X_dest            =          -80.00
+    Y_dest            =           40.00
+    Z_dest            =           40.00
+    etch_definition   =           -0.50
+    etch_speed        =          120.00
+    etch_depth        =            0.10
+    etch_max          =            0.50
+    probe_speed       =           20.00
+    probe_speed_fast  =  probe_speed*10
+    z_safety          =            1.50  
+    z_probe           =           -1.50
+    tool_probe        =          -45.00
+    z_trivial         =            0.02
+    z_probe_detach    =           15.00
+    grid_clearance    =            0.01
+    step_size         =           10.00
 
     # INCH DEFAULTS: if units are inches, adjust them
     if units == "inch": 
@@ -125,6 +126,7 @@ def Unit_set():
         etch_depth        = round(etch_depth*to_inch,4)
         etch_max          =            etch_max*to_inch 
         probe_speed       =         probe_speed*to_inch
+        probe_speed_fast  =    probe_speed_fast*to_inch
         z_safety          =            z_safety*to_inch
         z_probe           =             z_probe*to_inch
         tool_probe        =          tool_probe*to_inch
@@ -663,37 +665,39 @@ if OK == True:
         intro.append(line)
         line = ("G%2d (" + units + ")\n") % (units_G_code)
         intro.append(line)
-        line = "#<_etch_depth>    =   %.4f \n" % (etch_depth)
+        line = "#<_etch_depth>         =   %.4f \n" % (etch_depth)
         intro.append(line)
-        line = "#<_etch_speed>    =  %.4f \n" % (etch_speed)
+        line = "#<_etch_speed>         =  %.4f \n" % (etch_speed)
         intro.append(line)
-        line = "#<_probe_speed>   =   %.4f \n" % (probe_speed)
+        line = "#<_probe_speed>        =   %.4f \n" % (probe_speed)
         intro.append(line)
-        line = "#<_z_safety>      =    %.4f \n" % (z_safety)
+        line = "#<_probe_speed_fast>   =   %.4f \n" % (probe_speed_fast)
         intro.append(line)
-        line = "#<_z_probe>       =   %.4f \n" % (z_probe)
+        line = "#<_z_safety>           =    %.4f \n" % (z_safety)
         intro.append(line)
-        line = "#<_tool_probe>    =   %.4f \n" % (tool_probe)
+        line = "#<_z_probe>            =   %.4f \n" % (z_probe)
         intro.append(line)
-        line = "#<_z_trivial>     =    %.4f \n\n" % (z_trivial)
+        line = "#<_tool_probe>         =   %.4f \n" % (tool_probe)
+        intro.append(line)
+        line = "#<_z_trivial>          =    %.4f \n\n" % (z_trivial)
         intro.append(line)
 
         line = "(Don't change these values here, they were calculated earlier)\n"
         intro.append(line)
-        line =  '#<_x_grid_origin> =  %.4f \n' % (X_grid_origin) 
+        line =  '#<_x_grid_origin>     =  %.4f \n' % (X_grid_origin) 
         intro.append(line )
-        line =  '#<_x_grid_lines>  =    %.4f \n' % (X_grid_lines )
+        line =  '#<_x_grid_lines>      =    %.4f \n' % (X_grid_lines )
         intro.append(line)
-        line =  '#<_y_grid_origin> =    %.4f \n' % (Y_grid_origin)
+        line =  '#<_y_grid_origin>     =    %.4f \n' % (Y_grid_origin)
         intro.append(line)
-        line =  '#<_y_grid_lines>  =    %.4f \n' % (Y_grid_lines )
+        line =  '#<_y_grid_lines>      =    %.4f \n' % (Y_grid_lines )
         intro.append(line)
-        line =  '#<_x_step_size>   =    %.4f \n' % (X_step_size)  
+        line =  '#<_x_step_size>       =    %.4f \n' % (X_step_size)  
         intro.append(line)
-        line =  '#<_y_step_size>   =    %.4f \n' % (Y_step_size)  
+        line =  '#<_y_step_size>       =    %.4f \n' % (Y_step_size)  
         intro.append(line)
 
-        line =  """#<_last_z_etch>   =    #<_etch_depth>
+        line =  """#<_last_z_etch>     =    #<_etch_depth>
 
 (define subroutines:)
     O100 sub (probe subroutine)
@@ -805,11 +809,12 @@ if OK == True:
     O<_probe_init> sub (Medir longitud de herremienta primaria)
         G49				( clear tool length compensation)
         G30				( to probe switch)
-        ;(Ajustar mecanica para acercarse rapido y luego medir con precision, resortes)
+        (Usuar switch o Ajustar mecanica para acercarse rapido y luego medir con precision, resortes)
         ;G91				( relative mode for probing)
-        ;G38.2 Z-90 F#<_probe_speed>	( trip switch on the way down)
-        ;G0 Z1               		( back off the switch)
-        G38.2 Z#<_tool_probe> F#<_probe_speed>	( trip switch slowly)
+        ;G38.2 Z#<_tool_probe> F#<_probe_speed_fast>	( trip switch on the way down)
+        ;G0 Z#<_z_safety>               	        ( back off the switch)
+        ;G38.2 Z#<_z_probe> F#<_probe_speed>	        ( trip switch slowly)
+        G38.2 Z#<_tool_probe> F#<_probe_speed>	        ( trip switch slowly)
 
         (DEBUG, Referencia de herramienta primaria: #5063)
         #<_ToolRefZ> = #5063  ( save trip point)
@@ -822,8 +827,9 @@ if OK == True:
         G49					( clear tool length compensation)
         G30					( to probe switch)
         ;G91					( relative mode for probing)
-        ;G38.2 Z-90 F#<_probe_speed>		( trip switch on the way down)
-        ;G0 Z1          	     		( back off the switch)
+        ;G38.2 Z#<_tool_probe> F#<_probe_speed_fast>		( trip switch on the way down)
+        ;G0 Z#<_z_safety>          	     		( back off the switch)
+        ;G38.2 Z#<_z_probe> F#<_probe_speed>				( trip switch slowly)
         G38.2 Z#<_tool_probe> F#<_probe_speed>				( trip switch slowly)
  
         (DEBUG, Referencia de herramienta secundaria: #5063)
