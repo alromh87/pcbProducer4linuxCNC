@@ -112,6 +112,7 @@ def Unit_set():
     tool_probe        =          -45.00
     z_trivial         =            0.02
     z_probe_detach    =           15.00
+    z_tool_change     =           45.00
     grid_clearance    =            0.01
     step_size         =           10.00
 
@@ -132,13 +133,14 @@ def Unit_set():
         tool_probe        =          tool_probe*to_inch
         z_trivial         =           z_trivial*to_inch
         z_probe_detach    =      z_probe_detach*to_inch
+        z_tool_change     =      z_tool_change*to_inch
         grid_clearance    =      grid_clearance*to_inch
         step_size         =  round(step_size*to_inch,4)
 
 
 def Unit_sel():
     global units,G_dest,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,z_safety,z_probe
-    global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size,tool_probe
+    global etch_depth,etch_max,z_trivial,z_probe_detach,z_tool_change,grid_clearance,step_size,tool_probe
     global X_grid_lines,Y_grid_lines,grid_def, file_name_mill, file_name_drill
     
     units = get_units.get()
@@ -536,25 +538,27 @@ if OK == True:
             if mill_loaded and not mill_finished:
                 mill_finished = True
                 if outline_loaded and not drill_loaded:
-                    line = "T1\n" + line + "M6\n(MSG, Coloque cortador recto para exterior)\nM0\nO<_probe_tool> call\n"
+                    line = line + ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n(MSG, Coloque cortador recto para exterior)\nT1\nM6\nM0\nO<_probe_tool> call\n" % (z_probe_detach))
                 file_out.append(line)
             elif drill_loaded and not drill_finished:
                 drill_finished = True
                 if mill_finished:
                     drill_guides.append(line)
                 if outline_loaded:
-                    line = "T1\n" + line + "M6\n(MSG, Coloque cortador recto para exterior)\nM0\nO<_probe_tool> call\n"
+                    line = line + ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n(MSG, Coloque cortador recto para exterior)\nT1\nM6\nM0\nO<_probe_tool> call\n" % (z_probe_detach))
                     drill_moves.append(line)
             elif outline_loaded and not outline_finished:
                     outline_finished = True
             continue
 
-        if M_dest == 6:        # If tool change comanded wait for programm pause
-            tool_change_commanded = True
+        if M_dest == 6:        # linuxCNC realiza el cambio de herramienta en M6 no en M0
+            line = ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n" % (z_probe_detach)) + line + "O<_probe_tool> call \n"
+            M_dest = -1
+#            tool_change_commanded = True
 
-        if tool_change_commanded and M_dest == 0:
-            line = line + "O<_probe_tool> call \n"
-            tool_change_commanded = False
+#        if tool_change_commanded and M_dest == 0:
+#            line = ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n" % (z_probe_detach)) + line + "O<_probe_tool> call \n"
+#            tool_change_commanded = False
         
         # Thake in account modal instructions
         if G_found:
@@ -885,7 +889,7 @@ O001 endwhile
 ( with an adjusted etch move in the format: O200 sub [x_start] [y_start] [aa] [bb]  )
 ( O200 is the etch subroutine                                                       )
 
-(MSG, OK folks - power up the mill...)
+(MSG, Iniciando maquinado...)
 ;M0
 
 """
@@ -894,7 +898,7 @@ O001 endwhile
         # Finally, create and then save the output file
         file_out = intro + file_out + drill_guides + drill_moves + outline_moves
 
-        line = 'M02 (End Program)\n'
+        line = '(MSG, Terminamos...)M02 (End Program)\n'
         file_out.append(line)
 
         f = open(file_out_name, 'w')
