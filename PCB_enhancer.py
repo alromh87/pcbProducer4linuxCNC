@@ -90,7 +90,7 @@ G_codes_probing   = [1,81]
   
 def Unit_set():
     global units,units_G_code,X_dest,Y_dest,Z_dest,etch_definition,etch_speed,probe_speed,probe_speed_fast,z_safety,z_probe
-    global etch_depth,etch_max,z_trivial,z_probe_detach,grid_clearance,step_size,tool_probe
+    global etch_depth,etch_max,z_trivial,z_probe_detach,z_tool_change,grid_clearance,step_size,tool_probe
     global X_grid_lines,Y_grid_lines,grid_def
 
     to_inch = 1/25.4
@@ -538,26 +538,26 @@ if OK == True:
             if mill_loaded and not mill_finished:
                 mill_finished = True
                 if outline_loaded and not drill_loaded:
-                    line = line + ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n(MSG, Coloque cortador recto para exterior)\nT1\nM6\nM0\nO<_probe_tool> call\n" % (z_probe_detach))
+                    line = line + ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n(MSG, Coloque cortador recto para exterior)\nT1\nM6\nM0\nO<_probe_tool> call\n" % (z_tool_change))
                 file_out.append(line)
             elif drill_loaded and not drill_finished:
                 drill_finished = True
                 if mill_finished:
                     drill_guides.append(line)
                 if outline_loaded:
-                    line = line + ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n(MSG, Coloque cortador recto para exterior)\nT1\nM6\nM0\nO<_probe_tool> call\n" % (z_probe_detach))
+                    line = line + ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n(MSG, Coloque cortador recto para exterior)\nT1\nM6\nM0\nO<_probe_tool> call\n" % (z_tool_change))
                     drill_moves.append(line)
             elif outline_loaded and not outline_finished:
                     outline_finished = True
             continue
 
-        if M_dest == 6:        # linuxCNC realiza el cambio de herramienta en M6 no en M0
-            line = ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n" % (z_probe_detach)) + line + "O<_probe_tool> call \n"
+        if M_dest == 6:        # linuxCNC realiza el cambio de herramienta en M6
+            line = ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n" % (z_tool_change)) + line + "O<_probe_tool> call \n"
             M_dest = -1
 #            tool_change_commanded = True
 
 #        if tool_change_commanded and M_dest == 0:
-#            line = ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n" % (z_probe_detach)) + line + "O<_probe_tool> call \n"
+#            line = ("G00 Z%.4f(Salir para iniciar cambio de herramienta)\n" % (z_tool_change)) + line + "O<_probe_tool> call \n"
 #            tool_change_commanded = False
         
         # Thake in account modal instructions
