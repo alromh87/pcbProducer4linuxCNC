@@ -654,7 +654,7 @@ if OK == True:
         # OK now output the G code intro
         # (define the variables, set up the probe subroutine, the etch subroutine and the code to probe the grid)
         from time import localtime, strftime
-        line = ";Etch_Z_adjust: \n"
+        line = ";PCB_enhancer(): \n"
         intro.append(line)
         line = "(Imported from:  " + file_name_mill + " at " + strftime("%I:%M %p on %d %b %Y", localtime())+ ")\n"
         intro.append(line)
