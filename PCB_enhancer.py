@@ -898,7 +898,7 @@ O001 endwhile
         # Finally, create and then save the output file
         file_out = intro + file_out + drill_guides + drill_moves + outline_moves
 
-        line = '(MSG, Terminamos...)M02 (End Program)\n'
+        line = '(MSG, Terminamos...)\nM02 (End Program)\n'
         file_out.append(line)
 
         f = open(file_out_name, 'w')
