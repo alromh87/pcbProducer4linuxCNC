@@ -1,0 +1,333 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-requires gladevcp 0.0 -->
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="window1">
+    <child>
+      <object class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <child>
+          <object class="HAL_Table" id="panel_estado">
+            <property name="visible">True</property>
+            <property name="n_rows">7</property>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Estado:</property>
+                <property name="width_chars">1</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+              </object>
+            </child>
+            <child>
+              <object class="GtkHBox" id="hbox1">
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkLabel" id="label">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">2</property>
+                    <property name="label" translatable="yes">Estado prueba:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="HAL_LED" id="led_probbing">
+                    <property name="visible">True</property>
+                    <property name="pick_color_on">#8d9cc13b07f0</property>
+                    <property name="off_color"></property>
+                    <property name="pick_color_off">#cc0ccc24cf90</property>
+                    <property name="led_size">17</property>
+                    <property name="on_color"></property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="HAL_Label" id="herramienta_actual">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="ypad">2</property>
+                <property name="text_template">Herramienta actual: %s</property>
+              </object>
+              <packing>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="HAL_Label" id="herramienta_preparada">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="ypad">2</property>
+                <property name="text_template">Herramienta preparada: %s</property>
+              </object>
+              <packing>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="HAL_Label" id="ajuste_herramienta">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="ypad">2</property>
+                <property name="text_template">Ajuste herramienta: %.4f</property>
+                <property name="label_pin_type">1</property>
+              </object>
+              <packing>
+                <property name="top_attach">4</property>
+                <property name="bottom_attach">5</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="HAL_Table" id="panel_controles">
+            <property name="visible">True</property>
+            <property name="n_rows">3</property>
+            <property name="n_columns">2</property>
+            <child>
+              <object class="GtkLabel" id="label2">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Controles:</property>
+                <property name="width_chars">1</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+              </object>
+            </child>
+            <child>
+              <object class="HAL_Button" id="boton_ToolProbbingStation">
+                <property name="label" translatable="yes">Establecer</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="related_action">set_tool_station_action</property>
+                <property name="yalign">0.50999999046325684</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label3">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="label" translatable="yes">Probar altura Z</property>
+              </object>
+              <packing>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVBox" id="vbox2">
+                <property name="visible">True</property>
+                <child>
+                  <object class="HAL_SpinButton" id="z_probbing">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="editable">False</property>
+                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="width_chars">0</property>
+                    <property name="truncate_multiline">True</property>
+                    <property name="overwrite_mode">True</property>
+                    <property name="caps_lock_warning">False</property>
+                    <property name="adjustment">valores_probbing_z</property>
+                    <property name="climb_rate">0.5</property>
+                    <property name="digits">2</property>
+                    <property name="snap_to_ticks">True</property>
+                    <property name="numeric">True</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="HAL_HScale" id="feedrate_probbing">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="adjustment">valores_probbing_feedrate</property>
+                    <property name="restrict_to_fill_level">False</property>
+                    <property name="fill_level">10</property>
+                    <property name="digits">2</property>
+                    <property name="value_pos">left</property>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="HAL_Button" id="boton_Z_probbing">
+                    <property name="label" translatable="yes">Probar</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="related_action">probe_z_action</property>
+                  </object>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label4">
+                <property name="width_request">141</property>
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">2</property>
+                <property name="label" translatable="yes">Posici&#xF3;n de cambio de herramienta</property>
+                <property name="wrap">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_options">GTK_FILL</property>
+              </packing>
+            </child>
+            <child>
+              <object class="HAL_ToggleButton" id="boton_pausa">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="related_action">hal_toggleaction_pause</property>
+                <property name="use_action_appearance">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHBox" id="hbox2">
+            <property name="height_request">81</property>
+            <property name="visible">True</property>
+            <child>
+              <object class="HAL_Meter" id="medidor_avance">
+                <property name="width_request">15</property>
+                <property name="visible">True</property>
+                <property name="z1_color">#292990901a1a</property>
+                <property name="bg_color">#ffffffffffff</property>
+                <property name="text_template">%.2f</property>
+                <property name="max">500</property>
+                <property name="majorscale">50</property>
+                <property name="label">Avance</property>
+                <property name="z2_color">#ffff00000000</property>
+                <property name="z0_border">120</property>
+                <property name="sublabel">mm/m</property>
+                <property name="z1_border">300</property>
+                <property name="minorscale">25</property>
+                <property name="z0_color">#ededececebeb</property>
+              </object>
+              <packing>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="HAL_Meter" id="medidor_usillo">
+                <property name="visible">True</property>
+                <property name="z1_color">#21a78c6d12ae</property>
+                <property name="bg_color">#ffffffffffff</property>
+                <property name="text_template">%d</property>
+                <property name="max">50000</property>
+                <property name="majorscale">5000</property>
+                <property name="label">Usillo</property>
+                <property name="z2_color">#ffff00000000</property>
+                <property name="value">550.20001220703125</property>
+                <property name="z0_border">10000</property>
+                <property name="sublabel">RPMs</property>
+                <property name="z1_border">40000</property>
+                <property name="minorscale">2500</property>
+                <property name="z0_color">#ededececebeb</property>
+              </object>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="HAL_ProgressBar" id="progreso_programa">
+            <property name="width_request">7</property>
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="EMC_Action_MDI" id="set_tool_station_action">
+    <property name="tooltip">Establecer posici&#xF3;n de estaci&#xF3;n para medici&#xF3;n de herramientas</property>
+    <property name="command">G30.1</property>
+  </object>
+  <object class="EMC_Action_MDI" id="probe_z_action">
+    <property name="command">G38.2 Z${z_probbing-f} F${feedrate_probbing}</property>
+  </object>
+  <object class="GtkAdjustment" id="valores_probbing_z">
+    <property name="value">-3</property>
+    <property name="lower">-20</property>
+    <property name="step_increment">0.5</property>
+    <property name="page_increment">5</property>
+    <property name="page_size">10</property>
+  </object>
+  <object class="GtkAdjustment" id="valores_probbing_feedrate">
+    <property name="value">0.29999999999999999</property>
+    <property name="lower">0.01</property>
+    <property name="upper">20</property>
+    <property name="step_increment">0.10000000000000001</property>
+  </object>
+  <object class="EMC_ToggleAction_Pause" id="hal_toggleaction_pause">
+    <property name="stock_id">gtk-media-pause</property>
+    <property name="icon_name">media-playback-pause</property>
+    <property name="always_show_image">True</property>
+  </object>
+</interface>

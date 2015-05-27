@@ -1,0 +1,34 @@
+#Activar siempre panel estado
+setp gladevcp.panel_estado 1
+
+#Activar control de cambio de herramienta cuando la maquina este lista
+net machine-on motion.motion-enabled => gladevcp.panel_controles
+
+#Mostrar led de probbing
+net probe-in motion.probe-input => gladevcp.led_probbing
+
+#Mostrar herramienta preparada y actual
+unlinkp iocontrol.0.tool-prep-number
+unlinkp hal_manualtoolchange.number
+
+net tool-prepared iocontrol.0.tool-prep-number => gladevcp.herramienta_preparada hal_manualtoolchange.number
+net tool-number iocontrol.0.tool-number => gladevcp.herramienta_actual
+
+#Mostrar ajuste de herramienta
+net tool-offset-z motion.tooloffset.z => gladevcp.ajuste_herramienta
+
+#Mostrar velocidad de avance en mm/m
+#net speed motion.current-vel => gladevcp.medidor_avance
+loadrt mult2 count=1
+addf mult2.0 servo-thread
+net speed motion.current-vel => mult2.0.in0
+setp mult2.0.in1 60
+net speed_m mult2.0.out => gladevcp.medidor_avance
+
+#Mostrar velocidad de usillo
+net spindle-speed motion.spindle-speed-out => gladevcp.medidor_usillo
+
+#Mostrar proceso de ejecución
+#unlinkp gladevcp.progreso_programa
+#net progress motion.distance-to-go => gladevcp.progreso_programa
+
