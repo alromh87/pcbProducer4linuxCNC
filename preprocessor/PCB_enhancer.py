@@ -60,19 +60,22 @@
 #     For ease of use you may want to change the default start up directory 'initial directory' below.
 #     If you are going to use Opti, make sure Opti_cli's location is correctly specified in 'opti_path' below.
 #     The ~/ notation doesn't work - you must give the full path.
- 
+
+#import os
 
 # UNITLESS DEFAULTS: These values are not unit sensitive (you can change these here)
-initial_directory = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing'
+initial_directory = '/home/alejandro/Proyectos/pcbProducer4linuxCNC/testBoard'
+#initial_directory = os.path.dirname(os.path.realpath(__file__)) #Path script
+#initial_directory = os.path.realpath(__file__) #Path linuxCNC
 opti_path         = ''
 X_grid_lines      = 10
 Y_grid_lines      =  5
 units             = "inch"
 grid_def          = "step size"
 file_in_name      = ''
-file_name_mill    = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/back.ngc'
-file_name_drill   = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/drill.ngc'
-file_name_outline = '/home/alejandro/Descargas/pcb2gcode_gui/PCBMillingProbing/outline.ngc'
+file_name_mill    = initial_directory + '/back.ngc'
+file_name_drill   = initial_directory + '/drill.ngc'
+file_name_outline = initial_directory + '/outline.ngc'
 
 G_modal           = 0
 G_dest            = 0
