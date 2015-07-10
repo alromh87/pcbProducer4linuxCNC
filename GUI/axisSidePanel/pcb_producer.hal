@@ -4,9 +4,6 @@ setp gladevcp.panel_estado 1
 #Activar control de cambio de herramienta cuando la maquina este lista
 net machine-on motion.motion-enabled => gladevcp.panel_controles
 
-#Habilitar emulación de probing
-net probe-in gladevcp.boton_probing_emul => motion.probe-input
-
 #Mostrar led de probbing
 net probe-in motion.probe-input => gladevcp.led_probbing
 

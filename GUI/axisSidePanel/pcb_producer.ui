@@ -97,13 +97,6 @@
               </packing>
             </child>
             <child>
-              <object class="HAL_Button" id="boton_probing_emul">
-                <property name="label" translatable="yes">Simular toque</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-              </object>
-            </child>
-            <child>
               <placeholder/>
             </child>
           </object>

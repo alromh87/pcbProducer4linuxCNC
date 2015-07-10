@@ -1,0 +1,12 @@
+#Activar control de cambio de herramienta cuando la maquina este lista
+net machine-on motion.motion-enabled => probing.panel_controles
+
+#Mostrar led de probing
+net probe-in motion.probe-input => probing.led_probing
+
+#Mostrar ajuste de herramienta
+net tooloffset-z motion.tooloffset.z => gmoccapy.tooloffset-z
+
+#Mostrar pendiente probing
+net progress motion.distance-to-go => probing.probing_progress
+

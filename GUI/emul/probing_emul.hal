@@ -1,0 +1,2 @@
+#Habilitar emulación de probing
+net probe-in probing_emul.button_simulate_contact => motion.probe-input
