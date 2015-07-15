@@ -3,24 +3,218 @@
   <!-- interface-requires gladevcp 0.0 -->
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="EMC_Action_MDI" id="probe_z_action">
-    <property name="command">G38.2 Z${z_probbing-f} F${feedrate_probbing}</property>
+  <object class="EMC_ToggleAction_MDI" id="probe_z_action">
+    <property name="tooltip" translatable="yes">Lanzar Probe</property>
+    <property name="active">True</property>
+    <property name="command">G38.2 Z${z_probing} F${feedrate_probing}</property>
+    <signal name="mdi-command-start" handler="on_probe_z_action_mdi_command_start" swapped="no"/>
+    <signal name="mdi-command-stop" handler="on_probe_z_action_mdi_command_stop" swapped="no"/>
   </object>
   <object class="EMC_Action_MDI" id="set_tool_station_action">
     <property name="tooltip" translatable="yes">Establecer posición de estación para medición de herramientas</property>
     <property name="command">G30.1</property>
   </object>
-  <object class="GtkAdjustment" id="valores_probbing_feedrate">
+  <object class="GtkDialog" id="dialog_probing">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="type">popup</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="window_position">mouse</property>
+    <property name="icon">images/icono148x48.png</property>
+    <property name="type_hint">dnd</property>
+    <property name="deletable">False</property>
+    <property name="opacity">0.98999999999999999</property>
+    <property name="has_separator">True</property>
+    <signal name="close" handler="on_dialog_probing_close" swapped="no"/>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="layout_style">spread</property>
+            <child>
+              <object class="GtkButton" id="button_cancel">
+                <property name="width_request">56</property>
+                <property name="height_request">56</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <signal name="clicked" handler="on_button_cancel_clicked" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="image_stop">
+                    <property name="width_request">56</property>
+                    <property name="height_request">56</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="pixel_size">48</property>
+                    <property name="icon_name">dialog-cancel</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="HAL_ToggleButton" id="button_probe">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="related_action">probe_z_action</property>
+                <property name="use_action_appearance">False</property>
+                <property name="active">True</property>
+                <child>
+                  <object class="GtkImage" id="image_probing1">
+                    <property name="width_request">56</property>
+                    <property name="height_request">56</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="pixbuf">images/probing.png</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkFrame" id="frame2">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label_xalign">0.5</property>
+            <child>
+              <object class="GtkAlignment" id="alignment2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="left_padding">12</property>
+                <child>
+                  <object class="HAL_HScale" id="feedrate_probing">
+                    <property name="height_request">70</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="adjustment">valores_probing_feedrate</property>
+                    <property name="fill_level">20</property>
+                    <property name="round_digits">2</property>
+                    <property name="digits">2</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">&lt;b&gt;Velocidad&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkFrame" id="Hasta">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label_xalign">0.5</property>
+            <child>
+              <object class="GtkAlignment" id="alignment4">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="left_padding">12</property>
+                <child>
+                  <object class="HAL_HScale" id="z_probing">
+                    <property name="height_request">70</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="adjustment">valores_probing_z</property>
+                    <property name="round_digits">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel" id="label3">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">&lt;b&gt;Hasta&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <object class="HAL_ProgressBar" id="probing_progress">
+            <property name="height_request">70</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">button_cancel</action-widget>
+      <action-widget response="0">button_probe</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkAdjustment" id="valores_probing_feedrate">
     <property name="lower">0.01</property>
     <property name="upper">20</property>
-    <property name="value">0.29999999999999999</property>
+    <property name="value">3.2999999999999998</property>
     <property name="step_increment">0.10000000000000001</property>
   </object>
-  <object class="GtkAdjustment" id="valores_probbing_z">
+  <object class="GtkAdjustment" id="valores_probing_z">
     <property name="lower">-20</property>
-    <property name="value">-3</property>
+    <property name="value">-2</property>
     <property name="step_increment">0.5</property>
     <property name="page_increment">5</property>
+  </object>
+  <object class="EMC_Stat" id="vcp_stat1">
+    <signal name="all-homed" handler="on_vcp_stat1_all_homed" swapped="no"/>
+    <signal name="state-estop" handler="on_vcp_stat1_state_estop" swapped="no"/>
   </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
@@ -42,6 +236,8 @@
                   <object class="GtkHBox" id="hbox3">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="spacing">1</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkLabel" id="label_status">
                         <property name="visible">True</property>
@@ -75,143 +271,79 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="HAL_Table" id="panel_controles">
+                  <object class="GtkAlignment" id="alignment3">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="n_rows">4</property>
+                    <property name="xscale">0</property>
+                    <property name="yscale">0</property>
+                    <property name="top_padding">5</property>
+                    <property name="bottom_padding">5</property>
+                    <property name="left_padding">5</property>
+                    <property name="right_padding">5</property>
                     <child>
-                      <object class="GtkTable" id="table2">
+                      <object class="HAL_Table" id="panel_controles">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="n_rows">2</property>
-                        <property name="n_columns">2</property>
+                        <property name="row_spacing">5</property>
+                        <property name="homogeneous">True</property>
                         <child>
-                          <object class="GtkLabel" id="label_speed">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Velocidad</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="label_DTG">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Hasta</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="HAL_HScale" id="feedrate_probbing">
+                          <object class="HAL_Button" id="button_probing_set">
+                            <property name="width_request">56</property>
+                            <property name="height_request">56</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="adjustment">valores_probbing_feedrate</property>
-                            <property name="fill_level">20</property>
-                            <property name="round_digits">1</property>
-                            <property name="digits">2</property>
+                            <property name="receives_default">True</property>
+                            <property name="use_action_appearance">False</property>
+                            <signal name="clicked" handler="on_button_probing_set_clicked" swapped="no"/>
+                            <child>
+                              <object class="GtkImage" id="image_probing">
+                                <property name="width_request">56</property>
+                                <property name="height_request">56</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="pixbuf">images/probing.png</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
+                            <property name="x_options">GTK_SHRINK</property>
+                            <property name="y_options">GTK_SHRINK</property>
                           </packing>
                         </child>
-                        <child>
-                          <object class="HAL_SpinButton" id="z_probbing">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="editable">False</property>
-                            <property name="invisible_char">•</property>
-                            <property name="width_chars">0</property>
-                            <property name="xalign">0.5</property>
-                            <property name="primary_icon_activatable">False</property>
-                            <property name="secondary_icon_activatable">False</property>
-                            <property name="primary_icon_sensitive">True</property>
-                            <property name="secondary_icon_sensitive">True</property>
-                            <property name="adjustment">valores_probbing_z</property>
-                            <property name="climb_rate">0.5</property>
-                            <property name="digits">2</property>
-                            <property name="snap_to_ticks">True</property>
-                            <property name="numeric">True</property>
-                            <property name="wrap">True</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                          </packing>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="button_probe">
-                        <property name="label" translatable="yes">Probar</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="related_action">probe_z_action</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="yalign">0.52999997138977051</property>
-                      </object>
-                      <packing>
-                        <property name="top_attach">1</property>
-                        <property name="bottom_attach">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="HAL_HideTable" id="hal_hide_probing_progress">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <child>
-                          <object class="HAL_ProgressBar" id="probing_progress">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="top_attach">2</property>
-                        <property name="bottom_attach">3</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="HAL_HideTable" id="hal_hide_station_setup">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="n_rows">2</property>
                         <child>
                           <object class="HAL_Button" id="button_tool_changer_position">
-                            <property name="label" translatable="yes">Establecer</property>
+                            <property name="width_request">56</property>
+                            <property name="height_request">56</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="related_action">set_tool_station_action</property>
                             <property name="use_action_appearance">False</property>
+                            <property name="use_underline">True</property>
+                            <child>
+                              <object class="GtkImage" id="image_measure_station1">
+                                <property name="width_request">56</property>
+                                <property name="height_request">56</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="pixbuf">images/measure_station.png</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
+                            <property name="x_options">GTK_SHRINK</property>
+                            <property name="y_options">GTK_SHRINK</property>
                           </packing>
                         </child>
-                        <child>
-                          <object class="GtkLabel" id="label1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Estación de medición</property>
-                          </object>
-                        </child>
                       </object>
-                      <packing>
-                        <property name="top_attach">3</property>
-                        <property name="bottom_attach">4</property>
-                      </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
