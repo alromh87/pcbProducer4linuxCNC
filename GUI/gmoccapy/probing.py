@@ -35,6 +35,8 @@ class MyCallbacks :
         if self.probe_running == True:
             c = linuxcnc.command()
             c.abort()
+            self.builder.get_object('probe_z_action').set_active(False)
+            self.probe_running == False
         self.dialog_probing.hide()
 
     def __init__(self, halcomp,builder,useropts):
